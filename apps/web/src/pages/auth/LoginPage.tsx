@@ -3,6 +3,7 @@ import { Role } from '@ratehub/shared';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+
 import { Button } from '../../components/ui/Button';
 import { GlassCard } from '../../components/ui/GlassCard';
 import { Input } from '../../components/ui/Input';
@@ -10,6 +11,11 @@ import { ThemeToggle } from '../../components/ui/ThemeToggle';
 import { apiClient } from '../../lib/api-client';
 import { LoginFormData, loginSchema } from '../../lib/validation/auth.schemas';
 import { useAuthStore } from '../../store/auth.store';
+
+interface LoginLocationState {
+  message?: string;
+  email?: string;
+}
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -19,7 +25,8 @@ export const LoginPage: React.FC = () => {
   const [serverError, setServerError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const successMessage = (location.state as any)?.message;
+  const locationState = location.state as LoginLocationState | null;
+  const successMessage = locationState?.message;
 
   const {
     register,
@@ -28,7 +35,7 @@ export const LoginPage: React.FC = () => {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: (location.state as any)?.email || '',
+      email: locationState?.email || '',
       password: '',
     },
   });
@@ -51,8 +58,9 @@ export const LoginPage: React.FC = () => {
       } else {
         navigate('/stores', { replace: true });
       }
-    } catch (err: any) {
-      setServerError(err.message || 'Invalid email or password. Please verify credentials.');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Invalid email or password. Please verify credentials.';
+      setServerError(message);
     } finally {
       setIsLoading(false);
     }

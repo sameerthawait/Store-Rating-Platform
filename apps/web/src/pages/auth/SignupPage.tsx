@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
+
 import { Button } from '../../components/ui/Button';
 import { GlassCard } from '../../components/ui/GlassCard';
 import { Input } from '../../components/ui/Input';
@@ -36,8 +37,9 @@ export const SignupPage: React.FC = () => {
           email: data.email,
         },
       });
-    } catch (err: any) {
-      setServerError(err.message || 'Signup failed. Please verify your details.');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Signup failed. Please verify your details.';
+      setServerError(message);
     } finally {
       setIsLoading(false);
     }

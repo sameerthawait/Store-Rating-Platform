@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useSearchParams } from 'react-router-dom';
 import { z } from 'zod';
+
 import { Navbar } from '../../components/layout/Navbar';
 import { Button } from '../../components/ui/Button';
 import { Column, DataTable } from '../../components/ui/DataTable';
@@ -82,7 +83,7 @@ export const AdminStoresPage: React.FC = () => {
       reset();
       setAddError(null);
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       setAddError(err.message || 'Failed to create store');
     },
   });

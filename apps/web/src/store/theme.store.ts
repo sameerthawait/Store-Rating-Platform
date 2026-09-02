@@ -13,7 +13,9 @@ const getInitialTheme = (): Theme => {
   try {
     const saved = localStorage.getItem('ratehub_theme');
     if (saved === 'light' || saved === 'dark') return saved;
-  } catch (e) {}
+  } catch (_err) {
+    // LocalStorage might be disabled or unavailable
+  }
   return 'dark'; // Default to dark mode per luxury liquid glass specification
 };
 
@@ -27,7 +29,9 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
       } else {
         document.documentElement.classList.remove('dark');
       }
-    } catch (e) {}
+    } catch (_err) {
+      // LocalStorage might be disabled or unavailable
+    }
     set({ theme });
   },
   toggleTheme: () => {

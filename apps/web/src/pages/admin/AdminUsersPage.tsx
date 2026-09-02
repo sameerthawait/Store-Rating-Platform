@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useSearchParams } from 'react-router-dom';
 import { z } from 'zod';
+
 import { Navbar } from '../../components/layout/Navbar';
 import { Button } from '../../components/ui/Button';
 import { Column, DataTable } from '../../components/ui/DataTable';
@@ -93,7 +94,7 @@ export const AdminUsersPage: React.FC = () => {
   const { data: userDetail, isLoading: isDetailLoading } = useQuery<UserDetailDto>({
     queryKey: ['admin-user-detail', selectedUserId],
     queryFn: async () => {
-      if (!selectedUserId) return null as any;
+      if (!selectedUserId) return null as unknown as UserDetailDto;
       const res = await apiClient.get(`/admin/users/${selectedUserId}`);
       return res.data;
     },
@@ -125,7 +126,7 @@ export const AdminUsersPage: React.FC = () => {
       reset();
       setAddError(null);
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       setAddError(err.message || 'Failed to create user account');
     },
   });
