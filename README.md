@@ -28,10 +28,10 @@ That's it!
 **Prerequisites**: Node.js `v20+` and `pnpm` (`npm install -g pnpm`).
 
 ```bash
-# 1. Clone and run automated setup (installs dependencies, builds packages, generates Prisma client, and seeds DB)
+# 1. Clone and run automated setup (auto-creates .env, installs dependencies, builds packages, generates Prisma client, and seeds DB)
 git clone https://github.com/sameerthawait/Store-Rating-Platform.git
 cd Store-Rating-Platform
-pnpm setup
+pnpm init:project
 
 # 2. Start both Backend and Frontend concurrently with hot reload
 pnpm dev
@@ -96,7 +96,7 @@ Store-Rating-Platform/
 
 | Command | Description |
 |---|---|
-| `pnpm setup` | 1-step install, compile shared packages, generate Prisma client, and seed DB |
+| `pnpm init:project` | 1-step install, compile shared packages, generate Prisma client, and seed DB |
 | `pnpm dev` | Run both Backend API and Frontend Web concurrently |
 | `pnpm dev:api` | Run NestJS API in watch mode |
 | `pnpm dev:web` | Run Vite frontend with hot module replacement |
