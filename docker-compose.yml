@@ -14,7 +14,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ratehub_user -d ratehub_db']
+      test: [ 'CMD-SHELL', 'pg_isready -U ratehub_user -d ratehub_db' ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -38,8 +38,8 @@ services:
       RATE_LIMIT_WINDOW_MS: 60000
       RATE_LIMIT_MAX: 100
       LOGIN_RATE_LIMIT_MAX: 5
-      SEED_ADMIN_EMAIL: 'admin@storerating.com'
-      SEED_ADMIN_PASSWORD: 'AdminPassword123!'
+      SEED_ADMIN_EMAIL: 'admin@gmail.com'
+      SEED_ADMIN_PASSWORD: 'Sameer@12345'
     ports:
       - '3000:3000'
     volumes:
