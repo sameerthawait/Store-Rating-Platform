@@ -36,30 +36,38 @@ export const Modal: React.FC<ModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fadeIn">
-      {/* Frosted Backdrop */}
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
+      {/* Frosted Backdrop with Ambient Blur */}
       <div
-        className="fixed inset-0 bg-slate-900/40 backdrop-blur-md transition-opacity"
+        className="fixed inset-0 bg-obsidian-950/60 dark:bg-black/80 backdrop-blur-md transition-opacity duration-300"
         onClick={onClose}
       />
 
-      {/* Glass Modal Card */}
+      {/* Glass Modal Dialog (Sheet on Mobile, Centered on Tablet/Desktop) */}
       <div
-        className={`relative w-full ${maxWidth} overflow-hidden rounded-3xl bg-white/80 backdrop-blur-2xl border border-white/60 shadow-2xl p-6 sm:p-8 z-10 animate-scaleUp`}
+        className={`relative w-full ${maxWidth} max-h-[90vh] overflow-y-auto rounded-t-3xl sm:rounded-2xl p-6 sm:p-8 z-10 
+          bg-white/95 dark:bg-obsidian-950/90 backdrop-blur-2xl 
+          border-t sm:border border-slate-200/80 dark:border-white/10 
+          shadow-2xl shadow-black/30 dark:shadow-gold-glow
+          transition-all duration-300`}
       >
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/90 to-transparent" />
+        {/* Specular Edge Highlight */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-400/40 to-transparent" />
 
         {/* Modal Header */}
-        <div className="flex items-start justify-between mb-6">
+        <div className="flex items-start justify-between mb-5">
           <div>
-            <h2 className="text-xl font-bold text-slate-900">{title}</h2>
+            <h2 className="text-lg sm:text-xl font-display font-bold text-slate-900 dark:text-white tracking-wide">
+              {title}
+            </h2>
             {description && (
-              <p className="text-xs text-slate-500 mt-1">{description}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{description}</p>
             )}
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="rounded-xl p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100/60 transition-colors"
+            className="rounded-xl p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -67,7 +75,7 @@ export const Modal: React.FC<ModalProps> = ({
           </button>
         </div>
 
-        {/* Modal Content */}
+        {/* Modal Body */}
         <div>{children}</div>
       </div>
     </div>

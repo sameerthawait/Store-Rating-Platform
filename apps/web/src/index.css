@@ -2,71 +2,126 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --color-canvas-start: #EEF2FF;
-  --color-canvas-end: #E0E7FF;
-  --color-glass-surface: rgba(255, 255, 255, 0.55);
-  --color-glass-surface-dark: rgba(17, 24, 39, 0.45);
-  --color-glass-border: rgba(255, 255, 255, 0.35);
-  --color-ink: #0F172A;
-  --color-slate: #475569;
-  --color-muted: #94A3B8;
-  --color-primary: #6366F1;
-  --color-primary-hover: #4F46E5;
-  --color-success: #10B981;
-  --color-warning: #F59E0B;
-  --color-danger: #EF4444;
-  --color-star-gold: #FBBF24;
-  --color-white: #FFFFFF;
+@layer base {
+  :root {
+    --bg-page: #F8FAFC;
+    --text-primary: #0F172A;
+    --text-secondary: #475569;
+    --text-muted: #94A3B8;
+    --border-color: rgba(226, 232, 240, 0.8);
+    --gold-accent: #F59E0B;
+  }
+
+  .dark {
+    --bg-page: #080C14;
+    --text-primary: #F8FAFC;
+    --text-secondary: #94A3B8;
+    --text-muted: #64748B;
+    --border-color: rgba(255, 255, 255, 0.08);
+    --gold-accent: #FBBF24;
+  }
+
+  body {
+    margin: 0;
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--text-primary);
+    background-color: var(--bg-page);
+    min-height: 100vh;
+    transition: background-color 300ms ease, color 300ms ease;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
 }
 
-body {
-  margin: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: var(--color-ink);
-  background: linear-gradient(180deg, #EEF2FF 0%, #E0E7FF 100%);
+/* Ambient Fluid Backgrounds */
+.ambient-mesh-dark {
+  background: 
+    radial-gradient(circle at 15% 15%, rgba(245, 158, 11, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 85% 85%, rgba(217, 119, 6, 0.06) 0%, transparent 45%),
+    radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.9) 0%, #080C14 100%);
   background-attachment: fixed;
-  min-height: 100vh;
-  -webkit-font-smoothing: antialiased;
 }
 
-.glass-surface {
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.12);
+.ambient-mesh-light {
+  background: 
+    radial-gradient(circle at 10% 10%, rgba(254, 243, 199, 0.5) 0%, transparent 50%),
+    radial-gradient(circle at 90% 80%, rgba(253, 230, 138, 0.3) 0%, transparent 45%),
+    radial-gradient(circle at 50% 50%, #FFFFFF 0%, #F8FAFC 100%);
+  background-attachment: fixed;
 }
 
-.glass-surface-modal {
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  border-radius: 20px;
-  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.12);
+/* Liquid Glass Cards */
+.liquid-glass {
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35);
+  position: relative;
+  overflow: hidden;
 }
 
-.input {
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: 10px;
-  padding: 10px 14px;
-  font-size: 16px;
-  color: #0F172A;
-  transition: all 150ms ease;
+.liquid-glass-light {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.03);
 }
 
-.input:focus {
-  border-color: #6366F1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-  outline: none;
+/* Specular border reflection effect */
+.specular-border {
+  position: relative;
+}
+.specular-border::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.25) 50%, transparent 100%);
+  pointer-events: none;
+}
+.dark .specular-border-gold::before {
+  background: linear-gradient(90deg, transparent 0%, rgba(245, 158, 11, 0.4) 50%, transparent 100%);
 }
 
-.input.error {
-  border-color: #EF4444;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+/* Gold Gradient Typography */
+.text-gold-gradient {
+  background: linear-gradient(135deg, #FDE68A 0%, #F59E0B 50%, #D97706 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gold-metallic {
+  background: linear-gradient(180deg, #FFFFFF 0%, #FDE047 30%, #D97706 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Subtle Shimmer for High-End Cards */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.shimmer-mask {
+  mask-image: linear-gradient(to right, transparent, black, transparent);
+}
+
+/* Custom Sleek Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.25);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(245, 158, 11, 0.4);
 }

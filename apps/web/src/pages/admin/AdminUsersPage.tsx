@@ -15,17 +15,32 @@ import { apiClient } from '../../lib/api-client';
 const createUserSchema = z.object({
   name: z
     .string()
-    .min(USER_VALIDATION.NAME_MIN_LENGTH, `Name must be at least ${USER_VALIDATION.NAME_MIN_LENGTH} chars`)
-    .max(USER_VALIDATION.NAME_MAX_LENGTH, `Name must not exceed ${USER_VALIDATION.NAME_MAX_LENGTH} chars`),
+    .min(
+      USER_VALIDATION.NAME_MIN_LENGTH,
+      `Name must be at least ${USER_VALIDATION.NAME_MIN_LENGTH} characters`,
+    )
+    .max(
+      USER_VALIDATION.NAME_MAX_LENGTH,
+      `Name must not exceed ${USER_VALIDATION.NAME_MAX_LENGTH} characters`,
+    ),
   email: z.string().email('Please enter a valid email address'),
   address: z
     .string()
     .min(1, 'Address is required')
-    .max(USER_VALIDATION.ADDRESS_MAX_LENGTH, `Address must not exceed ${USER_VALIDATION.ADDRESS_MAX_LENGTH} chars`),
+    .max(
+      USER_VALIDATION.ADDRESS_MAX_LENGTH,
+      `Address must not exceed ${USER_VALIDATION.ADDRESS_MAX_LENGTH} characters`,
+    ),
   password: z
     .string()
-    .min(USER_VALIDATION.PASSWORD_MIN_LENGTH, `Password must be at least ${USER_VALIDATION.PASSWORD_MIN_LENGTH} chars`)
-    .max(USER_VALIDATION.PASSWORD_MAX_LENGTH, `Password must not exceed ${USER_VALIDATION.PASSWORD_MAX_LENGTH} chars`)
+    .min(
+      USER_VALIDATION.PASSWORD_MIN_LENGTH,
+      `Password must be at least ${USER_VALIDATION.PASSWORD_MIN_LENGTH} characters`,
+    )
+    .max(
+      USER_VALIDATION.PASSWORD_MAX_LENGTH,
+      `Password must not exceed ${USER_VALIDATION.PASSWORD_MAX_LENGTH} characters`,
+    )
     .regex(USER_VALIDATION.PASSWORD_REGEX, USER_VALIDATION.PASSWORD_REQUIREMENTS_MESSAGE),
   role: z.enum([Role.NORMAL, Role.ADMIN, 'normal', 'admin']),
 });
@@ -42,6 +57,8 @@ export const AdminUsersPage: React.FC = () => {
   const sort = searchParams.get('sort') || 'created_at';
   const order = (searchParams.get('order') as 'asc' | 'desc') || 'desc';
   const nameFilter = searchParams.get('name') || '';
+  const emailFilter = searchParams.get('email') || '';
+  const addressFilter = searchParams.get('address') || '';
   const roleFilter = searchParams.get('role') || '';
 
   // Modals state
@@ -51,7 +68,10 @@ export const AdminUsersPage: React.FC = () => {
 
   // 1. Fetch Users Query
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-users', { page, limit, sort, order, name: nameFilter, role: roleFilter }],
+    queryKey: [
+      'admin-users',
+      { page, limit, sort, order, name: nameFilter, email: emailFilter, address: addressFilter, role: roleFilter },
+    ],
     queryFn: async () => {
       const res = await apiClient.get('/admin/users', {
         params: {
@@ -60,6 +80,8 @@ export const AdminUsersPage: React.FC = () => {
           sort,
           order,
           name: nameFilter || undefined,
+          email: emailFilter || undefined,
+          address: addressFilter || undefined,
           role: roleFilter || undefined,
         },
       });
@@ -104,7 +126,7 @@ export const AdminUsersPage: React.FC = () => {
       setAddError(null);
     },
     onError: (err: any) => {
-      setAddError(err.message || 'Failed to create user');
+      setAddError(err.message || 'Failed to create user account');
     },
   });
 
@@ -122,37 +144,42 @@ export const AdminUsersPage: React.FC = () => {
   const columns: Column<UserDto>[] = [
     {
       key: 'name',
-      header: 'Name',
+      header: 'Full Name',
       sortable: true,
-      render: (u) => <span className="font-semibold text-slate-900">{u.name}</span>,
+      render: (u) => (
+        <span className="font-semibold text-slate-900 dark:text-white cursor-pointer hover:text-amber-500 dark:hover:text-amber-400 transition-colors">
+          {u.name}
+        </span>
+      ),
     },
     {
       key: 'email',
-      header: 'Email',
+      header: 'Email Address',
       sortable: true,
+      render: (u) => <span className="text-slate-600 dark:text-slate-300">{u.email}</span>,
     },
     {
       key: 'address',
       header: 'Address',
       sortable: true,
       render: (u) => (
-        <span className="truncate max-w-xs block text-slate-500" title={u.address}>
+        <span className="text-xs text-slate-500 dark:text-slate-400 max-w-xs truncate block" title={u.address}>
           {u.address}
         </span>
       ),
     },
     {
       key: 'role',
-      header: 'Role',
+      header: 'Platform Role',
       sortable: true,
       render: (u) => (
         <span
-          className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wider ${
+          className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
             u.role === Role.ADMIN
-              ? 'bg-purple-50 text-purple-700 border border-purple-200'
+              ? 'bg-purple-500/10 text-purple-600 dark:text-purple-300 border border-purple-500/20'
               : u.role === Role.STORE_OWNER
-              ? 'bg-amber-50 text-amber-700 border border-amber-200'
-              : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+              ? 'bg-amber-500/10 text-amber-600 dark:text-amber-300 border border-amber-500/20'
+              : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border border-emerald-500/20'
           }`}
         >
           {u.role.replace('_', ' ')}
@@ -162,38 +189,62 @@ export const AdminUsersPage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/30 to-slate-100 flex flex-col">
+    <div className="min-h-screen bg-slate-50 dark:bg-obsidian-950 dark:ambient-mesh-dark ambient-mesh-light text-slate-900 dark:text-slate-100 flex flex-col transition-colors duration-300">
       <Navbar />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">User Management</h1>
-            <p className="text-xs text-slate-500 mt-0.5">
-              View, search, filter, and provision user accounts
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 pb-6 border-b border-slate-200/80 dark:border-white/10">
+          <div className="space-y-1">
+            <div className="inline-flex items-center space-x-2">
+              <span className="h-px w-6 bg-amber-500" />
+              <span className="text-[10px] font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400">
+                User Management
+              </span>
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-display font-bold tracking-tight text-slate-900 dark:text-white">
+              Directory of Accounts
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+              Filter, inspect credentials, and provision administrator or normal user accounts
             </p>
           </div>
           <Button onClick={() => setIsAddUserOpen(true)}>+ Add User</Button>
         </div>
 
-        {/* Filter Bar */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-white/60 backdrop-blur-xl p-4 rounded-2xl border border-white/50 shadow-sm">
+        {/* 4-Field Filter Bar with Liquid Glass */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-white/70 dark:bg-obsidian-950/60 backdrop-blur-xl p-4 rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-glass dark:shadow-glass-dark">
           <input
             type="text"
-            placeholder="Search by name..."
+            placeholder="Filter by Name..."
             value={nameFilter}
             onChange={(e) => updateParam('name', e.target.value)}
-            className="rounded-xl bg-white px-4 py-2 text-xs text-slate-900 placeholder-slate-400 border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500/20"
+            className="rounded-xl bg-white/90 dark:bg-obsidian-900/80 px-3.5 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 border border-slate-200 dark:border-white/10 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+          />
+
+          <input
+            type="text"
+            placeholder="Filter by Email..."
+            value={emailFilter}
+            onChange={(e) => updateParam('email', e.target.value)}
+            className="rounded-xl bg-white/90 dark:bg-obsidian-900/80 px-3.5 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 border border-slate-200 dark:border-white/10 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+          />
+
+          <input
+            type="text"
+            placeholder="Filter by Address..."
+            value={addressFilter}
+            onChange={(e) => updateParam('address', e.target.value)}
+            className="rounded-xl bg-white/90 dark:bg-obsidian-900/80 px-3.5 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 border border-slate-200 dark:border-white/10 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
           />
 
           <select
             value={roleFilter}
             onChange={(e) => updateParam('role', e.target.value)}
-            className="rounded-xl bg-white px-4 py-2 text-xs text-slate-700 border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500/20"
+            className="rounded-xl bg-white/90 dark:bg-obsidian-900/80 px-3.5 py-2 text-xs text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
           >
             <option value="">All Roles</option>
-            <option value="admin">Admin</option>
+            <option value="admin">System Administrator</option>
             <option value="normal">Normal User</option>
             <option value="store_owner">Store Owner</option>
           </select>
@@ -219,38 +270,36 @@ export const AdminUsersPage: React.FC = () => {
           }}
           onPageChange={(nextPage) => updateParam('page', nextPage)}
           onRowClick={(user) => setSelectedUserId(user.id)}
-          emptyMessage="No users found matching your filters."
+          emptyMessage="No user accounts found matching your filters."
         />
       </main>
 
-      {/* Add User Modal */}
+      {/* Add User Glass Modal */}
       <Modal
         isOpen={isAddUserOpen}
         onClose={() => {
           setIsAddUserOpen(false);
           setAddError(null);
         }}
-        title="Add New User"
-        description="Provision an Administrator or Normal User account"
+        title="Provision New User"
+        description="Create an Administrator or Normal User account"
       >
         {addError && (
-          <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs">
+          <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs">
             {addError}
           </div>
         )}
-        <form
-          onSubmit={handleSubmit((data) => createUserMutation.mutate(data))}
-          className="space-y-4"
-        >
+
+        <form onSubmit={handleSubmit((d) => createUserMutation.mutate(d))} className="space-y-4">
           <Input
             label="Full Name"
-            placeholder="Alexander Montgomery James"
+            placeholder="Jane Doe (20-60 chars)"
             error={errors.name?.message}
             {...register('name')}
           />
 
           <Input
-            label="Email"
+            label="Email Address"
             type="email"
             placeholder="newuser@example.com"
             error={errors.email?.message}
@@ -273,66 +322,66 @@ export const AdminUsersPage: React.FC = () => {
           />
 
           <div className="flex flex-col space-y-1.5 w-full text-left">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-700">
-              Role
+            <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+              Role Assignment
             </label>
             <select
               {...register('role')}
-              className="w-full rounded-xl bg-white/60 px-4 py-3 text-sm text-slate-900 border border-slate-200 outline-none focus:ring-4 focus:ring-indigo-500/15"
+              className="w-full rounded-xl bg-white/70 dark:bg-obsidian-900/80 px-4 py-2.5 text-sm text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
             >
               <option value="normal">Normal User</option>
               <option value="admin">System Administrator</option>
             </select>
           </div>
 
-          <Button type="submit" isLoading={createUserMutation.isPending} className="w-full mt-2">
-            Create User Account
+          <Button type="submit" isLoading={createUserMutation.isPending} className="w-full mt-3">
+            Provision User Account
           </Button>
         </form>
       </Modal>
 
-      {/* User Detail Modal */}
+      {/* User Detail Glass Modal */}
       <Modal
         isOpen={!!selectedUserId}
         onClose={() => setSelectedUserId(null)}
-        title="User Details"
-        description="Full profile and store rating information"
+        title="User Account Details"
+        description="Full profile and store rating intelligence"
       >
         {isDetailLoading || !userDetail ? (
           <div className="py-8 text-center text-slate-400">Loading user profile...</div>
         ) : (
           <div className="space-y-4 text-sm">
-            <div className="p-4 rounded-2xl bg-slate-50/80 border border-slate-100 space-y-2">
+            <div className="p-4 rounded-2xl bg-white/50 dark:bg-obsidian-900/60 border border-slate-200/60 dark:border-white/5 space-y-3">
               <div>
-                <span className="text-xs font-semibold text-slate-400 block uppercase">Name</span>
-                <span className="font-bold text-slate-900 text-base">{userDetail.name}</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Full Name</span>
+                <span className="font-display font-bold text-slate-900 dark:text-white text-base">{userDetail.name}</span>
               </div>
               <div>
-                <span className="text-xs font-semibold text-slate-400 block uppercase">Email</span>
-                <span className="text-slate-700">{userDetail.email}</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Email</span>
+                <span className="text-slate-700 dark:text-slate-300 font-mono text-xs">{userDetail.email}</span>
               </div>
               <div>
-                <span className="text-xs font-semibold text-slate-400 block uppercase">Address</span>
-                <span className="text-slate-700">{userDetail.address}</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Address</span>
+                <span className="text-slate-700 dark:text-slate-300">{userDetail.address}</span>
               </div>
               <div>
-                <span className="text-xs font-semibold text-slate-400 block uppercase">Role</span>
-                <span className="font-semibold text-indigo-600 uppercase tracking-wider text-xs">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Assigned Role</span>
+                <span className="font-semibold text-amber-500 uppercase tracking-wider text-xs">
                   {userDetail.role.replace('_', ' ')}
                 </span>
               </div>
             </div>
 
             {/* Store Owner Rating Card (Conditional) */}
-            {userDetail.role === 'store_owner' && (
-              <div className="p-4 rounded-2xl bg-indigo-50/80 border border-indigo-100 space-y-3">
+            {userDetail.role === Role.STORE_OWNER && (
+              <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-indigo-900">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400">
                     Owned Store Profile
                   </span>
-                  <div className="flex items-center space-x-1.5 bg-white px-3 py-1 rounded-full shadow-sm">
-                    <span className="text-amber-500 font-bold">★</span>
-                    <span className="font-bold text-slate-800 text-xs">
+                  <div className="flex items-center space-x-1.5 bg-white/90 dark:bg-obsidian-950 px-3 py-1 rounded-full shadow-xs">
+                    <span className="text-amber-400 font-bold">★</span>
+                    <span className="font-bold text-slate-900 dark:text-white text-xs">
                       {userDetail.store?.averageRating !== null &&
                       userDetail.store?.averageRating !== undefined
                         ? userDetail.store.averageRating
@@ -342,9 +391,9 @@ export const AdminUsersPage: React.FC = () => {
                 </div>
 
                 {userDetail.store ? (
-                  <div className="text-xs text-slate-600 space-y-1">
-                    <p className="font-semibold text-slate-800">{userDetail.store.name}</p>
-                    <p>{userDetail.store.address}</p>
+                  <div className="text-xs text-slate-600 dark:text-slate-300 space-y-1">
+                    <p className="font-display font-bold text-slate-900 dark:text-white">{userDetail.store.name}</p>
+                    <p className="text-slate-500 dark:text-slate-400">{userDetail.store.address}</p>
                   </div>
                 ) : (
                   <p className="text-xs text-slate-500 italic">No store assigned yet.</p>

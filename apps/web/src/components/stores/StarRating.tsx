@@ -4,16 +4,24 @@ interface StarRatingProps {
   value: number | null;
   onChange: (rating: number) => void;
   disabled?: boolean;
+  size?: 'sm' | 'md' | 'lg';
 }
 
 export const StarRating: React.FC<StarRatingProps> = ({
   value,
   onChange,
   disabled = false,
+  size = 'md',
 }) => {
   const [hoveredRating, setHoveredRating] = useState<number | null>(null);
 
   const displayRating = hoveredRating !== null ? hoveredRating : value || 0;
+
+  const sizeClasses = {
+    sm: 'h-4 w-4',
+    md: 'h-6 w-6',
+    lg: 'h-8 w-8',
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent, starIndex: number) => {
     if (disabled) return;
@@ -37,7 +45,7 @@ export const StarRating: React.FC<StarRatingProps> = ({
 
   return (
     <div
-      className="inline-flex items-center space-x-1"
+      className="inline-flex items-center space-x-1 select-none"
       role="radiogroup"
       aria-label="Star rating 1 to 5"
       onMouseLeave={() => !disabled && setHoveredRating(null)}
@@ -57,16 +65,20 @@ export const StarRating: React.FC<StarRatingProps> = ({
             onClick={() => !disabled && onChange(star)}
             onMouseEnter={() => !disabled && setHoveredRating(star)}
             onKeyDown={(e) => handleKeyDown(e, star)}
-            className={`p-1 rounded-lg transition-transform duration-150 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 ${
-              disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:scale-110 active:scale-95'
+            className={`p-1 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-400/40 ${
+              disabled
+                ? 'cursor-not-allowed opacity-50'
+                : 'cursor-pointer hover:scale-125 active:scale-95'
             }`}
           >
             <svg
-              className={`h-6 w-6 transition-colors duration-150 ${
-                isFilled ? 'text-amber-400 fill-amber-400 drop-shadow-sm' : 'text-slate-200 fill-slate-100 hover:text-amber-200'
+              className={`${sizeClasses[size]} transition-all duration-200 ${
+                isFilled
+                  ? 'text-amber-400 fill-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]'
+                  : 'text-slate-300 dark:text-slate-700 fill-slate-100 dark:fill-obsidian-900/50 hover:text-amber-300 dark:hover:text-amber-400/60'
               }`}
               viewBox="0 0 24 24"
-              strokeWidth="1.5"
+              strokeWidth="1.25"
               stroke="currentColor"
             >
               <path

@@ -35,13 +35,15 @@ export const AdminStoresPage: React.FC = () => {
   const sort = searchParams.get('sort') || 'created_at';
   const order = (searchParams.get('order') as 'asc' | 'desc') || 'desc';
   const nameFilter = searchParams.get('name') || '';
+  const emailFilter = searchParams.get('email') || '';
+  const addressFilter = searchParams.get('address') || '';
 
   const [isAddStoreOpen, setIsAddStoreOpen] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
 
   // 1. Fetch Stores Query
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-stores', { page, limit, sort, order, name: nameFilter }],
+    queryKey: ['admin-stores', { page, limit, sort, order, name: nameFilter, email: emailFilter, address: addressFilter }],
     queryFn: async () => {
       const res = await apiClient.get('/admin/stores', {
         params: {
@@ -50,6 +52,8 @@ export const AdminStoresPage: React.FC = () => {
           sort,
           order,
           name: nameFilter || undefined,
+          email: emailFilter || undefined,
+          address: addressFilter || undefined,
         },
       });
       return res.data;
@@ -99,45 +103,50 @@ export const AdminStoresPage: React.FC = () => {
       key: 'name',
       header: 'Store Name',
       sortable: true,
-      render: (s) => <span className="font-semibold text-slate-900">{s.name}</span>,
+      render: (s) => (
+        <span className="font-semibold text-slate-900 dark:text-white font-display">
+          {s.name}
+        </span>
+      ),
     },
     {
       key: 'email',
       header: 'Store Email',
       sortable: true,
+      render: (s) => <span className="text-slate-600 dark:text-slate-300 font-mono text-xs">{s.email}</span>,
     },
     {
       key: 'address',
-      header: 'Address',
+      header: 'Physical Address',
       sortable: true,
       render: (s) => (
-        <span className="truncate max-w-xs block text-slate-500" title={s.address}>
+        <span className="text-xs text-slate-500 dark:text-slate-400 max-w-xs truncate block" title={s.address}>
           {s.address}
         </span>
       ),
     },
     {
       key: 'rating',
-      header: 'Average Rating',
+      header: 'Average Score',
       sortable: true,
       render: (s) => (
-        <div className="inline-flex items-center space-x-1.5">
+        <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20">
           {s.averageRating !== null && s.averageRating !== undefined ? (
             <>
-              <span className="text-amber-500 font-bold">★</span>
-              <span className="font-bold text-slate-900 text-xs">{s.averageRating}</span>
+              <span className="text-amber-400 font-bold text-xs">★</span>
+              <span className="font-bold text-slate-900 dark:text-white text-xs">{s.averageRating}</span>
             </>
           ) : (
-            <span className="text-xs text-slate-400 italic">No ratings yet</span>
+            <span className="text-[10px] text-slate-400 italic">No ratings</span>
           )}
         </div>
       ),
     },
     {
       key: 'owner',
-      header: 'Store Owner',
+      header: 'Assigned Owner',
       render: (s) => (
-        <span className="text-xs font-medium text-slate-700">
+        <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
           {s.owner?.name || 'Unassigned'}
         </span>
       ),
@@ -145,29 +154,53 @@ export const AdminStoresPage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/30 to-slate-100 flex flex-col">
+    <div className="min-h-screen bg-slate-50 dark:bg-obsidian-950 dark:ambient-mesh-dark ambient-mesh-light text-slate-900 dark:text-slate-100 flex flex-col transition-colors duration-300">
       <Navbar />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">Store Management</h1>
-            <p className="text-xs text-slate-500 mt-0.5">
-              View, sort by computed rating, search, and provision stores
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 pb-6 border-b border-slate-200/80 dark:border-white/10">
+          <div className="space-y-1">
+            <div className="inline-flex items-center space-x-2">
+              <span className="h-px w-6 bg-amber-500" />
+              <span className="text-[10px] font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400">
+                Store Directory
+              </span>
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-display font-bold tracking-tight text-slate-900 dark:text-white">
+              Store Management
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+              Sort by computed ratings (nulls last), search multi-field parameters, and provision stores
             </p>
           </div>
           <Button onClick={() => setIsAddStoreOpen(true)}>+ Add Store</Button>
         </div>
 
-        {/* Filter Bar */}
-        <div className="flex items-center bg-white/60 backdrop-blur-xl p-4 rounded-2xl border border-white/50 shadow-sm">
+        {/* Filter Bar with Liquid Glass */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white/70 dark:bg-obsidian-950/60 backdrop-blur-xl p-4 rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-glass dark:shadow-glass-dark">
           <input
             type="text"
-            placeholder="Search stores by name..."
+            placeholder="Filter stores by Name..."
             value={nameFilter}
             onChange={(e) => updateParam('name', e.target.value)}
-            className="w-full max-w-md rounded-xl bg-white px-4 py-2 text-xs text-slate-900 placeholder-slate-400 border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500/20"
+            className="rounded-xl bg-white/90 dark:bg-obsidian-900/80 px-3.5 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 border border-slate-200 dark:border-white/10 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+          />
+
+          <input
+            type="text"
+            placeholder="Filter stores by Email..."
+            value={emailFilter}
+            onChange={(e) => updateParam('email', e.target.value)}
+            className="rounded-xl bg-white/90 dark:bg-obsidian-900/80 px-3.5 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 border border-slate-200 dark:border-white/10 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+          />
+
+          <input
+            type="text"
+            placeholder="Filter stores by Address..."
+            value={addressFilter}
+            onChange={(e) => updateParam('address', e.target.value)}
+            className="rounded-xl bg-white/90 dark:bg-obsidian-900/80 px-3.5 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 border border-slate-200 dark:border-white/10 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
           />
         </div>
 
@@ -194,46 +227,40 @@ export const AdminStoresPage: React.FC = () => {
         />
       </main>
 
-      {/* Add Store Modal */}
+      {/* Add Store Glass Modal */}
       <Modal
         isOpen={isAddStoreOpen}
         onClose={() => {
           setIsAddStoreOpen(false);
           setAddError(null);
         }}
-        title="Add New Store & Owner"
-        description="Provision a store and create its dedicated owner account atomically"
-        maxWidth="max-w-2xl"
+        title="Provision Store Profile"
+        description="Atomically establishes the store and assigns its initial owner"
       >
         {addError && (
-          <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs">
+          <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs">
             {addError}
           </div>
         )}
-        <form
-          onSubmit={handleSubmit((data) => createStoreMutation.mutate(data))}
-          className="space-y-6"
-        >
-          {/* Store Info Section */}
-          <div className="space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-700 border-b pb-1">
-              Store Information
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Input
-                label="Store Name (20 to 60 chars)"
-                placeholder="Apex Electronics Superstore"
-                error={errors.name?.message}
-                {...register('name')}
-              />
-              <Input
-                label="Store Email"
-                type="email"
-                placeholder="contact@apexelectronics.com"
-                error={errors.email?.message}
-                {...register('email')}
-              />
-            </div>
+
+        <form onSubmit={handleSubmit((d) => createStoreMutation.mutate(d))} className="space-y-5">
+          <div className="space-y-3 pb-4 border-b border-slate-100 dark:border-white/5">
+            <h4 className="text-[10px] font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400">
+              1. Store Details
+            </h4>
+            <Input
+              label="Store Name (3-60 chars)"
+              placeholder="e.g. Apex Electronics Superstore"
+              error={errors.name?.message}
+              {...register('name')}
+            />
+            <Input
+              label="Store Public Email"
+              type="email"
+              placeholder="contact@store.com"
+              error={errors.email?.message}
+              {...register('email')}
+            />
             <Input
               label="Store Physical Address"
               placeholder="100 Silicon Way, Tech District, San Francisco, CA"
@@ -242,45 +269,40 @@ export const AdminStoresPage: React.FC = () => {
             />
           </div>
 
-          {/* Owner Info Section */}
-          <div className="space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-700 border-b pb-1">
-              Store Owner Account
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Input
-                label="Owner Full Name (20 to 60 chars)"
-                placeholder="Marcus Vance Tech Lead"
-                error={errors.owner?.name?.message}
-                {...register('owner.name')}
-              />
-              <Input
-                label="Owner Login Email"
-                type="email"
-                placeholder="marcus@apexelectronics.com"
-                error={errors.owner?.email?.message}
-                {...register('owner.email')}
-              />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Input
-                label="Owner Address"
-                placeholder="100 Silicon Way, San Francisco, CA"
-                error={errors.owner?.address?.message}
-                {...register('owner.address')}
-              />
-              <Input
-                label="Owner Password (8-16 chars)"
-                type="password"
-                placeholder="••••••••"
-                error={errors.owner?.password?.message}
-                {...register('owner.password')}
-              />
-            </div>
+          <div className="space-y-3">
+            <h4 className="text-[10px] font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400">
+              2. Store Owner Login Credentials
+            </h4>
+            <Input
+              label="Owner Full Name (20-60 chars)"
+              placeholder="Marcus Vance (Tech Owner)"
+              error={errors.owner?.name?.message}
+              {...register('owner.name')}
+            />
+            <Input
+              label="Owner Login Email"
+              type="email"
+              placeholder="owner@store.com"
+              error={errors.owner?.email?.message}
+              {...register('owner.email')}
+            />
+            <Input
+              label="Owner Address"
+              placeholder="Owner residential or office address"
+              error={errors.owner?.address?.message}
+              {...register('owner.address')}
+            />
+            <Input
+              label="Owner Initial Password (8-16 chars, 1 uppercase, 1 special)"
+              type="password"
+              placeholder="••••••••"
+              error={errors.owner?.password?.message}
+              {...register('owner.password')}
+            />
           </div>
 
-          <Button type="submit" isLoading={createStoreMutation.isPending} className="w-full">
-            Create Store & Provision Owner
+          <Button type="submit" isLoading={createStoreMutation.isPending} className="w-full mt-4">
+            Provision Store & Owner
           </Button>
         </form>
       </Modal>
