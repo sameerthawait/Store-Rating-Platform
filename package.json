@@ -5,6 +5,7 @@
   "description": "RateHub - Production-ready Store Rating Platform Monorepo",
   "packageManager": "pnpm@9.0.0",
   "scripts": {
+    "setup": "pnpm install && pnpm build:shared && pnpm --filter @ratehub/api prisma:generate && pnpm db:seed",
     "dev": "pnpm --parallel --filter @ratehub/api --filter @ratehub/web dev",
     "dev:api": "pnpm --filter @ratehub/api start:dev",
     "dev:web": "pnpm --filter @ratehub/web dev",
