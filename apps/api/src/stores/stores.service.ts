@@ -46,7 +46,7 @@ export class StoresService {
 
     // 2. Execute atomic creation inside a Prisma transaction
     const createdStore = await this.prisma.$transaction(async (tx) => {
-      let resolvedOwnerId: string | null = null;
+      let resolvedOwnerId: string = '';
       let ownerUser: any = null;
 
       // Flow A: Inline Store Owner creation
@@ -95,6 +95,10 @@ export class StoresService {
         });
 
         resolvedOwnerId = dto.ownerId;
+      }
+
+      if (!resolvedOwnerId) {
+        throw new BadRequestException('Either an ownerId or owner details must be provided');
       }
 
       // Create Store linked to resolved owner
@@ -319,28 +323,29 @@ export class StoresService {
   }
 
   /**
-   * Authenticated user store discovery endpoint.
-   * Returns store list with overall average rating and caller's own submitted rating.
-   * Supports case-insensitive search on Name and Address.
+   * Normal user store discovery endpoint.
+   * Matches ?search= against Name and Address (case-insensitive partial match).
+   * Computes overall average rating and attaches requesting user's own rating if present.
    */
   async listStoresForUser(
-    userId: string,
+    currentUserId: string,
     query: SearchStoresQueryDto,
   ): Promise<PaginatedUserStoresResponseDto> {
-    const page = Number(query.page) > 0 ? Number(query.page) : 1;
-    const limit = Number(query.limit) > 0 ? Math.min(Number(query.limit), 100) : 20;
+    const page = Math.max(1, Number(query.page) || 1);
+    const limit = Math.min(50, Math.max(1, Number(query.limit) || 10));
     const skip = (page - 1) * limit;
 
+    // Search filter across Store Name and Address
     const where: Prisma.StoreWhereInput = {};
-
     if (query.search && query.search.trim() !== '') {
-      const searchKeyword = query.search.trim();
+      const searchTerm = query.search.trim();
       where.OR = [
-        { name: { contains: searchKeyword, mode: 'insensitive' } },
-        { address: { contains: searchKeyword, mode: 'insensitive' } },
+        { name: { contains: searchTerm, mode: 'insensitive' } },
+        { address: { contains: searchTerm, mode: 'insensitive' } },
       ];
     }
 
+    // Parallel fetch stores and total count
     const [stores, total] = await Promise.all([
       this.prisma.store.findMany({
         where,
@@ -358,40 +363,45 @@ export class StoresService {
 
     const storeIds = stores.map((s) => s.id);
 
-    let avgMap = new Map<string, number | null>();
-    let myRatingMap = new Map<string, number>();
-
-    if (storeIds.length > 0) {
-      const [avgRatings, myRatings] = await Promise.all([
-        this.prisma.rating.groupBy({
-          by: ['store_id'],
-          where: { store_id: { in: storeIds } },
-          _avg: { rating: true },
-        }),
-        userId
-          ? this.prisma.rating.findMany({
-              where: {
-                user_id: userId,
-                store_id: { in: storeIds },
-              },
-              select: {
-                store_id: true,
-                rating: true,
-              },
-            })
-          : Promise.resolve([]),
-      ]);
-
-      avgMap = new Map(
-        avgRatings.map((a) => [
-          a.store_id,
-          a._avg.rating !== null ? Number(a._avg.rating.toFixed(1)) : null,
-        ]),
-      );
-
-      myRatingMap = new Map(myRatings.map((r) => [r.store_id, r.rating]));
+    if (storeIds.length === 0) {
+      return {
+        data: [],
+        total: 0,
+        page,
+        limit,
+        totalPages: 1,
+      };
     }
 
+    // 1. Batch calculate overall average ratings for the current page
+    const avgRatings = await this.prisma.rating.groupBy({
+      by: ['store_id'],
+      where: { store_id: { in: storeIds } },
+      _avg: { rating: true },
+    });
+
+    const avgMap = new Map(
+      avgRatings.map((a) => [
+        a.store_id,
+        a._avg.rating !== null ? Number(a._avg.rating.toFixed(1)) : null,
+      ]),
+    );
+
+    // 2. Batch fetch requesting user's own submitted ratings for these stores
+    const userRatings = await this.prisma.rating.findMany({
+      where: {
+        user_id: currentUserId,
+        store_id: { in: storeIds },
+      },
+      select: {
+        store_id: true,
+        rating: true,
+      },
+    });
+
+    const myRatingMap = new Map(userRatings.map((r) => [r.store_id, r.rating]));
+
+    // Construct response
     const data: UserStoreItemDto[] = stores.map((s) => ({
       id: s.id,
       name: s.name,

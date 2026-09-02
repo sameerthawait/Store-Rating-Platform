@@ -19,6 +19,7 @@ async function main() {
     where: { email: adminEmail },
     update: {
       name: 'System Administrator',
+      password_hash: hashedAdminPassword,
       address: '742 Evergreen Terrace, Platform HQ, Springfield',
       role: Role.admin,
     },

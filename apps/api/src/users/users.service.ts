@@ -1,41 +1,62 @@
-import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { Role as SharedRole } from '@ratehub/shared';
+import {
+  Role as SharedRole,
+  USER_VALIDATION,
+} from '@ratehub/shared';
 import * as argon2 from 'argon2';
-import { UserResponseDto } from '../auth/dto/user-response.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { PaginatedUsersResponseDto } from './dto/paginated-users-response.dto';
 import { QueryUsersDto } from './dto/query-users.dto';
 import { UserDetailResponseDto } from './dto/user-detail-response.dto';
+import { UserResponseDto } from '../auth/dto/user-response.dto';
 
 @Injectable()
 export class UsersService {
-  private readonly logger = new Logger(UsersService.name);
-
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * Admin-only user provisioning.
-   * Creates either a normal or admin user with argon2 password hashing.
+   * Admin-only user creation endpoint.
+   * Can create users with role 'normal' or 'admin' only.
    */
   async createUser(dto: CreateUserDto): Promise<UserResponseDto> {
-    const normalizedEmail = dto.email.toLowerCase().trim();
+    const normalizedEmail = dto.email.trim().toLowerCase();
 
-    // 1. Check for duplicate email
-    const existing = await this.prisma.user.findUnique({
-      where: { email: normalizedEmail },
-      select: { id: true },
-    });
-
-    if (existing) {
-      throw new ConflictException('This email is already registered');
+    // 1. Enforce business rule: only 'normal' and 'admin' roles can be created directly here
+    if (dto.role === 'store_owner') {
+      throw new BadRequestException(
+        'Store owners must be created via the store creation flow (POST /api/v1/admin/stores).',
+      );
     }
 
-    // 2. Hash password securely with argon2
-    const password_hash = await argon2.hash(dto.password);
+    // 2. Validate Password policy matching signup rules
+    if (!USER_VALIDATION.PASSWORD_REGEX.test(dto.password)) {
+      throw new BadRequestException(USER_VALIDATION.PASSWORD_REQUIREMENTS_MESSAGE);
+    }
 
-    // 3. Persist user with specified role
+    // 3. Check for existing email conflict
+    const existing = await this.prisma.user.findUnique({
+      where: { email: normalizedEmail },
+    });
+    if (existing) {
+      throw new ConflictException('An account with this email address already exists.');
+    }
+
+    // 4. Hash password with Argon2id
+    const password_hash = await argon2.hash(dto.password, {
+      type: argon2.argon2id,
+      memoryCost: 65536,
+      timeCost: 3,
+      parallelism: 4,
+    });
+
+    // 5. Create user in database
     const user = await this.prisma.user.create({
       data: {
         name: dto.name.trim(),
@@ -43,15 +64,6 @@ export class UsersService {
         password_hash,
         address: dto.address.trim(),
         role: dto.role as any,
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        address: true,
-        role: true,
-        created_at: true,
-        updated_at: true,
       },
     });
 
@@ -67,12 +79,11 @@ export class UsersService {
   }
 
   /**
-   * Admin-only paginated, sorted, and filtered user listing.
-   * All filter/sort/pagination clauses are pushed down to PostgreSQL query.
+   * Admin-only listing of users with database-pushed filtering, sorting, and pagination.
    */
   async listUsers(query: QueryUsersDto): Promise<PaginatedUsersResponseDto> {
-    const page = Number(query.page) > 0 ? Number(query.page) : 1;
-    const limit = Number(query.limit) > 0 ? Math.min(Number(query.limit), 100) : 10;
+    const page = Math.max(1, Number(query.page) || 1);
+    const limit = Math.min(100, Math.max(1, Number(query.limit) || 10));
     const skip = (page - 1) * limit;
 
     // Build database WHERE clause
@@ -156,7 +167,7 @@ export class UsersService {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: {
-        storesOwned: true,
+        owned_store: true,
       },
     });
 
@@ -180,7 +191,7 @@ export class UsersService {
     }
 
     // For store_owner role, compute average rating for their owned store
-    const store = user.storesOwned[0] || null;
+    const store = user.owned_store;
     let storeSummary = null;
 
     if (store) {
