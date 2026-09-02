@@ -45,7 +45,7 @@ export const ChangePasswordPage: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-12 bg-slate-50 dark:bg-obsidian-950 dark:ambient-mesh-dark ambient-mesh-light text-slate-900 dark:text-slate-100 transition-colors duration-300 relative">
+    <div className="flex min-h-screen items-center justify-center px-4 py-12 bg-slate-50 dark:bg-obsidian-950 ambient-mesh text-slate-900 dark:text-slate-100 transition-colors duration-300 relative">
       {/* Top right Theme Switcher */}
       <div className="absolute top-6 right-6 z-20">
         <ThemeToggle />
