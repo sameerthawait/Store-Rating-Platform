@@ -1,56 +1,58 @@
 <!doctype html>
 <html lang="en" class="dark">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
-    <title>RateHub — The Curated Store Rating Platform</title>
 
-    <!-- 1. Unregister any stale Service Worker (e.g. ScamShield PWA on port 5173) & clear caches -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-          for (var registration of registrations) {
-            registration.unregister().then(function(success) {
-              if (success) {
-                console.log('[RateHub] Successfully unregistered stale service worker.');
-                window.location.reload();
-              }
-            });
-          }
-        });
-      }
-      if ('caches' in window) {
-        caches.keys().then(function(names) {
-          for (var name of names) {
-            caches.delete(name);
-          }
-        });
-      }
-    </script>
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <title>RateHub — The Curated Store Rating Platform</title>
 
-    <!-- 2. Dark/Light Mode anti-flicker script -->
-    <script>
-      (function() {
-        try {
-          var stored = localStorage.getItem('ratehub_theme');
-          if (stored === 'light') {
-            document.documentElement.classList.remove('dark');
-          } else {
-            document.documentElement.classList.add('dark');
-          }
-        } catch (e) {}
-      })();
-    </script>
-  </head>
-  <body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-amber-500/25 selection:text-amber-200">
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+  <!-- 1. Unregister any stale Service Worker (e.g. ScamShield) & clear caches -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function (registrations) {
+        for (var i = 0; i < registrations.length; i++) {
+          registrations[i].unregister().then(function (success) {
+            if (success) {
+              console.log('[RateHub] Cleaned up stale service worker.');
+              window.location.reload();
+            }
+          });
+        }
+      });
+    }
+    if ('caches' in window) {
+      caches.keys().then(function (names) {
+        for (var i = 0; i < names.length; i++) {
+          caches.delete(names[i]);
+        }
+      });
+    }
+  </script>
+
+  <!-- 2. Dark/Light Mode anti-flicker script -->
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('ratehub_theme');
+        if (stored === 'light') {
+          document.documentElement.classList.remove('dark');
+        } else {
+          document.documentElement.classList.add('dark');
+        }
+      } catch (e) { }
+    })();
+  </script>
+</head>
+
+<body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-amber-500/25 selection:text-amber-200">
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>
