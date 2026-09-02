@@ -13,7 +13,7 @@ import { Modal } from '../../components/ui/Modal';
 import { apiClient } from '../../lib/api-client';
 
 const createStoreSchema = z.object({
-  name: z.string().min(20, 'Store name must be at least 20 chars').max(60, 'Store name must not exceed 60 chars'),
+  name: z.string().min(3, 'Store name must be at least 3 chars').max(60, 'Store name must not exceed 60 chars'),
   email: z.string().email('Please enter a valid store email address'),
   address: z.string().min(1, 'Store address is required').max(400, 'Address must not exceed 400 chars'),
   owner: z.object({

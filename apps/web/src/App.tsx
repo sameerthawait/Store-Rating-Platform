@@ -9,6 +9,7 @@ import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { ChangePasswordPage } from './pages/auth/ChangePasswordPage';
 import { LoginPage } from './pages/auth/LoginPage';
 import { SignupPage } from './pages/auth/SignupPage';
+import { StoreOwnerDashboardPage } from './pages/store-owner/StoreOwnerDashboardPage';
 import { StoresPage } from './pages/stores/StoresPage';
 import { useAuthStore } from './store/auth.store';
 
@@ -55,6 +56,14 @@ export const App: React.FC = () => {
           <Route element={<RequireRole />}>
             <Route path="/stores" element={<StoresPage />} />
             <Route path="/change-password" element={<ChangePasswordPage />} />
+          </Route>
+
+          {/* Store Owner Protected Routes */}
+          <Route element={<RequireRole role={Role.STORE_OWNER} />}>
+            <Route
+              path="/store-owner/dashboard"
+              element={<StoreOwnerDashboardPage />}
+            />
           </Route>
 
           {/* Admin Protected Routes */}
