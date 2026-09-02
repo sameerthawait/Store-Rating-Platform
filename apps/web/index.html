@@ -11,10 +11,35 @@
       rel="stylesheet"
     />
     <title>RateHub — The Curated Store Rating Platform</title>
+
+    <!-- 1. Unregister any stale Service Worker (e.g. ScamShield PWA on port 5173) & clear caches -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for (var registration of registrations) {
+            registration.unregister().then(function(success) {
+              if (success) {
+                console.log('[RateHub] Successfully unregistered stale service worker.');
+                window.location.reload();
+              }
+            });
+          }
+        });
+      }
+      if ('caches' in window) {
+        caches.keys().then(function(names) {
+          for (var name of names) {
+            caches.delete(name);
+          }
+        });
+      }
+    </script>
+
+    <!-- 2. Dark/Light Mode anti-flicker script -->
     <script>
       (function() {
         try {
-          const stored = localStorage.getItem('ratehub_theme');
+          var stored = localStorage.getItem('ratehub_theme');
           if (stored === 'light') {
             document.documentElement.classList.remove('dark');
           } else {
