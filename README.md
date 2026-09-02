@@ -1,4 +1,4 @@
-# 🌟 RateHub — Modern Store Rating & SaaS Analytics Platform
+# 🌟 RateHub — Modern Store Rating
 
 A turnkey, enterprise-grade store rating platform designed with a **Liquid Glass + Glassmorphism** aesthetic, high-contrast dark/light mode, and full SaaS analytics. Users discover and rate registered merchants (1–5 stars), store owners monitor customer feedback and score distributions in real-time, and platform administrators oversee the entire ecosystem from a centralized executive dashboard.
 
@@ -9,6 +9,7 @@ Built strictly with **NestJS**, **Prisma ORM**, **PostgreSQL**, **React (Vite)**
 ## ⚡ Quick Start (Zero-Config Setup)
 
 ### Option A: Run with Docker (Recommended — 1 Command)
+
 The entire stack (PostgreSQL, NestJS API, and React Web) is completely containerized. Database migrations and initial seed accounts are executed automatically upon boot.
 
 ```bash
@@ -18,6 +19,7 @@ docker compose up -d
 ```
 
 That's it!
+
 * **Web App**: [http://localhost:5173](http://localhost:5173)
 * **Backend API & Swagger Docs**: [http://localhost:3000/api/docs](http://localhost:3000/api/docs)
 
@@ -38,6 +40,7 @@ pnpm dev
 ```
 
 *To run services individually in separate terminals:*
+
 * **Backend API**: `pnpm dev:api` (Runs on `http://localhost:3000`)
 * **Frontend Web**: `pnpm dev:web` (Runs on `http://localhost:5173`)
 
@@ -48,7 +51,7 @@ pnpm dev
 The database comes pre-seeded with authentic accounts across all three user roles:
 
 | Role | Email | Password | Access & Functionality |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **System Administrator** | `admin@gmail.com` | `Sameer@12345` | Executive dashboard, provision new users & stores, multi-field directory filters |
 | **Store Owner (Tech)** | `owner.tech@storerating.local` | `Password123!` | Store Analytics Dashboard, Rating Breakdown Chart (5★ to 1★), customer rater history |
 | **Store Owner (Apparel)** | `owner.apparel@storerating.local` | `Password123!` | Store Analytics Dashboard, rater review log |
@@ -62,6 +65,7 @@ The database comes pre-seeded with authentic accounts across all three user role
 ## 💎 Features & Architecture
 
 ### 1. Visual & UX Highlights
+
 * **Liquid Glass + Glassmorphism Aesthetic**: Obsidian black (`#080C14`), gold/amber gradients (`#F59E0B`), specular reflections, and ambient fluid mesh backgrounds.
 * **Luxury Typography**: Google Fonts `Cinzel` & `Cormorant Garamond` (editorial display) paired with `Plus Jakarta Sans` (crisp data copy).
 * **Dark / Light Mode**: Smooth 300ms animated Sun/Moon toggle with persistent `localStorage` synchronization.
@@ -69,6 +73,7 @@ The database comes pre-seeded with authentic accounts across all three user role
 * **SaaS Analytics Breakdown Chart**: 5-star to 1-star visual distribution progress bars with live percentages, rater counts, and customer sentiment chips.
 
 ### 2. Engineering & Security Invariants
+
 * **Strict Role-Based Access Control (RBAC)**: Enforced with JWT tokens, Argon2 password hashing, and NestJS Guards at every API route.
 * **Atomic Upserts**: Ratings are enforced with composite uniqueness `(user_id, store_id)` allowing real-time modification without duplicates.
 * **Row-Level Isolation**: Store owners can strictly only view ratings and details for stores they own (`stores.owner_id = user.id`).
@@ -79,7 +84,7 @@ The database comes pre-seeded with authentic accounts across all three user role
 
 ## 📁 Monorepo Structure
 
-```
+```text
 Store-Rating-Platform/
 ├── packages/
 │   └── shared/       # Shared TypeScript types, Zod schemas, role enums, validation constants
@@ -95,7 +100,7 @@ Store-Rating-Platform/
 ## 🛠️ Monorepo Commands
 
 | Command | Description |
-|---|---|
+| --- | --- |
 | `pnpm init:project` | 1-step install, compile shared packages, generate Prisma client, and seed DB |
 | `pnpm dev` | Run both Backend API and Frontend Web concurrently |
 | `pnpm dev:api` | Run NestJS API in watch mode |
