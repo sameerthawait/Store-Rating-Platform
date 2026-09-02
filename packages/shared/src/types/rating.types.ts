@@ -9,8 +9,7 @@ export interface RatingDto {
 
 export interface StoreRaterDto {
   userId: string;
-  userName: string;
-  userEmail: string;
+  name: string;
   rating: number;
-  updatedAt: Date;
+  submittedAt: Date;
 }

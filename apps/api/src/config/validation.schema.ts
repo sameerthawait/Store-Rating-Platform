@@ -13,6 +13,6 @@ export const configValidationSchema = Joi.object({
   RATE_LIMIT_WINDOW_MS: Joi.number().default(60000),
   RATE_LIMIT_MAX: Joi.number().default(100),
   LOGIN_RATE_LIMIT_MAX: Joi.number().default(5),
-  SEED_ADMIN_EMAIL: Joi.string().email().optional(),
-  SEED_ADMIN_PASSWORD: Joi.string().optional(),
+  SEED_ADMIN_EMAIL: Joi.string().email({ tlds: { allow: false } }).optional().allow(''),
+  SEED_ADMIN_PASSWORD: Joi.string().optional().allow(''),
 });

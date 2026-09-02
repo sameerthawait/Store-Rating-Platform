@@ -4,7 +4,8 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x", "debian-openssl-3.0.x"]
 }
 
 enum Role {
@@ -14,55 +15,51 @@ enum Role {
 }
 
 model User {
-  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name               String    @db.VarChar(60)
-  email              String    @unique @db.VarChar(255)
-  password_hash      String    @db.VarChar(255)
-  refresh_token_hash String?   @db.VarChar(255)
-  address            String    @db.VarChar(400)
-  role               Role      @default(normal)
-  created_at         DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at         DateTime  @updatedAt @db.Timestamptz(6)
+  id                 String   @id @default(uuid()) @db.Uuid
+  name               String   @db.VarChar(60)
+  email              String   @unique @db.VarChar(255)
+  password_hash      String   @db.VarChar(255)
+  address            String   @db.VarChar(400)
+  role               Role     @default(normal)
+  refresh_token_hash String?  @db.VarChar(255)
+  created_at         DateTime @default(now()) @db.Timestamptz
+  updated_at         DateTime @updatedAt @db.Timestamptz
 
   // Relations
-  storesOwned        Store[]   @relation("StoreOwner")
-  ratings            Rating[]
+  owned_store Store?
+  ratings     Rating[]
 
-  @@index([email])
   @@index([role])
   @@map("users")
 }
 
 model Store {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id         String   @id @default(uuid()) @db.Uuid
   name       String   @db.VarChar(60)
   email      String   @unique @db.VarChar(255)
   address    String   @db.VarChar(400)
-  owner_id   String?  @db.Uuid
-  created_at DateTime @default(now()) @db.Timestamptz(6)
-  updated_at DateTime @updatedAt @db.Timestamptz(6)
+  owner_id   String   @unique @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamptz
+  updated_at DateTime @updatedAt @db.Timestamptz
 
   // Relations
-  owner      User?    @relation("StoreOwner", fields: [owner_id], references: [id], onDelete: SetNull)
-  ratings    Rating[]
+  owner   User     @relation(fields: [owner_id], references: [id], onDelete: Restrict)
+  ratings Rating[]
 
-  @@index([name])
-  @@index([address])
-  @@index([owner_id])
   @@map("stores")
 }
 
 model Rating {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id         String   @id @default(uuid()) @db.Uuid
   user_id    String   @db.Uuid
   store_id   String   @db.Uuid
   rating     Int      @db.SmallInt
-  created_at DateTime @default(now()) @db.Timestamptz(6)
-  updated_at DateTime @updatedAt @db.Timestamptz(6)
+  created_at DateTime @default(now()) @db.Timestamptz
+  updated_at DateTime @updatedAt @db.Timestamptz
 
   // Relations
-  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  store      Store    @relation(fields: [store_id], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  store Store @relation(fields: [store_id], references: [id], onDelete: Cascade)
 
   @@unique([user_id, store_id])
   @@index([store_id])

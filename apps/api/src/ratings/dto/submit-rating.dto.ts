@@ -14,15 +14,15 @@ export class SubmitRatingDto {
   @ApiProperty({
     description: 'Star rating value (1 to 5)',
     example: 5,
-    minimum: RATING_VALIDATION.MIN,
-    maximum: RATING_VALIDATION.MAX,
+    minimum: RATING_VALIDATION.MIN_RATING,
+    maximum: RATING_VALIDATION.MAX_RATING,
   })
   @IsInt({ message: 'Rating must be an integer' })
-  @Min(RATING_VALIDATION.MIN, {
-    message: `Rating must be at least ${RATING_VALIDATION.MIN}`,
+  @Min(RATING_VALIDATION.MIN_RATING, {
+    message: `Rating must be at least ${RATING_VALIDATION.MIN_RATING}`,
   })
-  @Max(RATING_VALIDATION.MAX, {
-    message: `Rating must not exceed ${RATING_VALIDATION.MAX}`,
+  @Max(RATING_VALIDATION.MAX_RATING, {
+    message: `Rating must not exceed ${RATING_VALIDATION.MAX_RATING}`,
   })
   rating: number;
 }
