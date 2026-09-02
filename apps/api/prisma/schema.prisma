@@ -1,0 +1,70 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  admin
+  normal
+  store_owner
+}
+
+model User {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name               String    @db.VarChar(60)
+  email              String    @unique @db.VarChar(255)
+  password_hash      String    @db.VarChar(255)
+  refresh_token_hash String?   @db.VarChar(255)
+  address            String    @db.VarChar(400)
+  role               Role      @default(normal)
+  created_at         DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime  @updatedAt @db.Timestamptz(6)
+
+  // Relations
+  storesOwned        Store[]   @relation("StoreOwner")
+  ratings            Rating[]
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+model Store {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String   @db.VarChar(60)
+  email      String   @unique @db.VarChar(255)
+  address    String   @db.VarChar(400)
+  owner_id   String?  @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @updatedAt @db.Timestamptz(6)
+
+  // Relations
+  owner      User?    @relation("StoreOwner", fields: [owner_id], references: [id], onDelete: SetNull)
+  ratings    Rating[]
+
+  @@index([name])
+  @@index([address])
+  @@index([owner_id])
+  @@map("stores")
+}
+
+model Rating {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id    String   @db.Uuid
+  store_id   String   @db.Uuid
+  rating     Int      @db.SmallInt
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @updatedAt @db.Timestamptz(6)
+
+  // Relations
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  store      Store    @relation(fields: [store_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, store_id])
+  @@index([store_id])
+  @@map("ratings")
+}

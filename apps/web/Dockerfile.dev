@@ -1,0 +1,23 @@
+FROM node:20-alpine
+
+RUN npm install -g pnpm
+
+WORKDIR /usr/src/app
+
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY packages/shared/package.json ./packages/shared/
+COPY apps/api/package.json ./apps/api/
+COPY apps/web/package.json ./apps/web/
+
+RUN pnpm install
+
+COPY packages/shared ./packages/shared
+COPY apps/web ./apps/web
+
+WORKDIR /usr/src/app/apps/web
+
+RUN pnpm --filter @ratehub/shared build
+
+EXPOSE 5173
+
+CMD ["pnpm", "dev", "--host"]

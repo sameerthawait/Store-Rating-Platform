@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ratehub_postgres_prod
+    restart: always
+    environment:
+      POSTGRES_USER: [DATABASE_USER]
+      POSTGRES_PASSWORD: [DATABASE_PASSWORD]
+      POSTGRES_DB: [DATABASE_NAME]
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U [DATABASE_USER] -d [DATABASE_NAME]']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: ratehub_api_prod
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://[DATABASE_USER]:[DATABASE_PASSWORD]@postgres:5432/[DATABASE_NAME]?schema=public
+      JWT_ACCESS_SECRET: [JWT_ACCESS_SECRET_MIN_32_CHARS]
+      JWT_ACCESS_EXPIRY: 15m
+      JWT_REFRESH_SECRET: [JWT_REFRESH_SECRET_MIN_32_CHARS]
+      JWT_REFRESH_EXPIRY: 7d
+      BCRYPT_OR_ARGON2_COST: 4
+      CORS_ORIGIN: [PRODUCTION_WEB_ORIGIN]
+      RATE_LIMIT_WINDOW_MS: 60000
+      RATE_LIMIT_MAX: 100
+      LOGIN_RATE_LIMIT_MAX: 5
+    ports:
+      - '3000:3000'
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: ratehub_web_prod
+    restart: always
+    depends_on:
+      - api
+    ports:
+      - '80:80'
+
+volumes:
+  postgres_prod_data:
+    driver: local

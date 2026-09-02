@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ratehub_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: [DATABASE_USER]
+      POSTGRES_PASSWORD: [DATABASE_PASSWORD]
+      POSTGRES_DB: [DATABASE_NAME]
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U [DATABASE_USER] -d [DATABASE_NAME]']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile.dev
+    container_name: ratehub_api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://[DATABASE_USER]:[DATABASE_PASSWORD]@postgres:5432/[DATABASE_NAME]?schema=public
+      JWT_ACCESS_SECRET: [JWT_ACCESS_SECRET_MIN_32_CHARS]
+      JWT_ACCESS_EXPIRY: 15m
+      JWT_REFRESH_SECRET: [JWT_REFRESH_SECRET_MIN_32_CHARS]
+      JWT_REFRESH_EXPIRY: 7d
+      BCRYPT_OR_ARGON2_COST: 4
+      CORS_ORIGIN: http://localhost:5173
+      RATE_LIMIT_WINDOW_MS: 60000
+      RATE_LIMIT_MAX: 100
+      LOGIN_RATE_LIMIT_MAX: 5
+      SEED_ADMIN_EMAIL: [SEED_ADMIN_EMAIL]
+      SEED_ADMIN_PASSWORD: [SEED_ADMIN_PASSWORD]
+    ports:
+      - '3000:3000'
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+      - /usr/src/app/apps/api/node_modules
+      - /usr/src/app/packages/shared/node_modules
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile.dev
+    container_name: ratehub_web
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      VITE_API_BASE_URL: http://localhost:3000/api/v1
+    ports:
+      - '5173:5173'
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+      - /usr/src/app/apps/web/node_modules
+
+volumes:
+  postgres_data:
+    driver: local
