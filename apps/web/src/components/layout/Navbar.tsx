@@ -22,8 +22,8 @@ export const Navbar: React.FC = () => {
     }
   };
 
-  const isAdmin = user?.role === Role.ADMIN || user?.role === 'admin';
-  const isStoreOwner = user?.role === Role.STORE_OWNER || user?.role === 'store_owner';
+  const isAdmin = user?.role === Role.ADMIN;
+  const isStoreOwner = user?.role === Role.STORE_OWNER;
 
   const isActive = (path: string) => location.pathname === path;
 

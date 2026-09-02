@@ -30,11 +30,11 @@ const RootRedirect: React.FC = () => {
     return <Navigate to="/login" replace />;
   }
 
-  if (user.role === Role.ADMIN || user.role === 'admin') {
+  if (user.role === Role.ADMIN) {
     return <Navigate to="/admin/dashboard" replace />;
   }
 
-  if (user.role === Role.STORE_OWNER || user.role === 'store_owner') {
+  if (user.role === Role.STORE_OWNER) {
     return <Navigate to="/store-owner/dashboard" replace />;
   }
 

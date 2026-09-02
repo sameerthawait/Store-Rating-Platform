@@ -148,9 +148,9 @@ export const AdminUsersPage: React.FC = () => {
       render: (u) => (
         <span
           className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wider ${
-            u.role === Role.ADMIN || u.role === 'admin'
+            u.role === Role.ADMIN
               ? 'bg-purple-50 text-purple-700 border border-purple-200'
-              : u.role === Role.STORE_OWNER || u.role === 'store_owner'
+              : u.role === Role.STORE_OWNER
               ? 'bg-amber-50 text-amber-700 border border-amber-200'
               : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
           }`}
